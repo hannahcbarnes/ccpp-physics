@@ -7,7 +7,7 @@ module cu_gf_driver
    ! DH* TODO: replace constants with arguments to cu_gf_driver_run
    use physcons  , g => con_g, cp => con_cp, xlv => con_hvap, r_v => con_rv
    use machine   , only: kind_phys
-   use cu_gf_deep, only: cu_gf_deep_run,neg_check,autoconv,aeroevap,fct1d3
+   use cu_gf_deep, only: cu_gf_deep_run,neg_check,fct1d3
    use cu_gf_sh  , only: cu_gf_sh_run
 
    implicit none
@@ -87,7 +87,7 @@ contains
      !integer, parameter :: ichoicem=5	! 0 2 5 13
       integer, parameter :: ichoicem=13	! 0 2 5 13
       integer, parameter :: ichoice_s=3	! 0 1 2 3
-      real(kind=kind_phys), parameter :: aodccn=0.1
+      real(kind=kind_phys), parameter :: aodccn=0.07
       real(kind=kind_phys) :: dts,fpi,fp
       integer, parameter :: dicycle=0 ! diurnal cycle flag
       integer, parameter :: dicycle_m=0 !- diurnal cycle flag
@@ -162,7 +162,7 @@ contains
 !
    real(kind=kind_phys), dimension (im,km) :: qcheck,zo,t2d,q2d,po,p2d,rhoi
    real(kind=kind_phys), dimension (im,km) :: tn,qo,tshall,qshall,dz8w,omeg
-   real(kind=kind_phys), dimension (im)    :: ccn,z1,psur,cuten,cutens,cutenm
+   real(kind=kind_phys), dimension (im)    :: aod,ccn,z1,psur,cuten,cutens,cutenm
    real(kind=kind_phys), dimension (im)    :: umean,vmean,pmean
    real(kind=kind_phys), dimension (im)    :: xmbs,xmbs2,xmb,xmbm,xmb_dumm,mconv
 
@@ -181,7 +181,7 @@ contains
 !  qfx2 -- latent heat flux (kg/kg m/s), positive upward from sfc 
 !  gf needs them in w/m2. define hfx and qfx after simple unit conversion
    real(kind=kind_phys), dimension (im)  :: hfx,qfx
-   real(kind=kind_phys) tem,tem1,tf,tcr,tcrf
+   real(kind=kind_phys) trash,tem,tem1,tf,tcr,tcrf
 
    parameter (tf=243.16, tcr=270.16, tcrf=1.0/(tcr-tf))
   !parameter (tf=263.16, tcr=273.16, tcrf=1.0/(tcr-tf))
@@ -203,7 +203,7 @@ contains
 !
 ! these should be coming in from outside
 !
-!    cactiv(:)      = 0
+     cactiv(:)      = 0
      rand_mom(:)    = 0.
      rand_vmas(:)   = 0.
      rand_clos(:,:) = 0.
@@ -234,7 +234,7 @@ contains
 ! dx for scale awareness
 !    dx=40075000./float(lonf)
 !    tscl_kf=dx/25000.
-     ccn(its:ite)=150.
+!     ccn(its:ite)=150.
   
      if (imfshalcnv == 3) then
       ishallow_g3 = 1
@@ -265,6 +265,7 @@ contains
      dd_mf =0.
      dt_mf =0.
      tau_ecmwf(:)=0.
+     aod(:)=aodccn
 !
      j=1
      ht(:)=phil(:,1)/g
@@ -289,13 +290,19 @@ contains
      do i= its,itf
       forcing(i,:)=0.
       forcing2(i,:)=0.
-      ccn(i)=100.
+
+      !if (cactiv(i).eq.0) then
+      !  trash=max(.01,aod(i))
+      !  ccn(i)=max( 20., ( 370.37*trash )**1.555 )
+      !end if
+      !ccn_m(i)=ccn(i)
+      trash=max(.01,aod(i)-aodccn*.3*cactiv(i))
+      ccn(i)=max( 20., ( 370.37*trash )**1.555 )
+      
       hbot(i)  =kte
       htop(i)  =kts
       raincv(i)=0.
       xlandi(i)=real(xland(i))
-!     if(abs(xlandi(i)-1.).le.1.e-3) tun_rad_shall(i)=.15     
-!     if(abs(xlandi(i)-1.).le.1.e-3) flux_tun(i)=1.5     
      enddo
      do i= its,itf
       mconv(i)=0.
@@ -812,13 +819,15 @@ contains
                       +outqcm(i,k)*cutenm(i)                           &
                       +clw_ten1(k)                                     &
                          )
-               tem1 = max(0.0, min(1.0, (tcr-t(i,k))*tcrf))
-               if (clcw(i,k) .gt. -999.0) then
-                cliw(i,k) = max(0.,cliw(i,k) + tem * tem1)            ! ice
-                clcw(i,k) = max(0.,clcw(i,k) + tem *(1.0-tem1))       ! water
-               else
-                cliw(i,k) = max(0.,cliw(i,k) + tem)
-               endif
+               !tem1 = max(0.0, min(1.0, (tcr-t(i,k))*tcrf))
+               !if (clcw(i,k) .gt. -999.0) then
+               ! cliw(i,k) = max(0.,cliw(i,k) + tem * tem1)            !ice
+               ! clcw(i,k) = max(0.,clcw(i,k) + tem *(1.0-tem1))       ! water
+               !else
+               ! cliw(i,k) = max(0.,cliw(i,k) + tem)
+               !endif
+               if(t(i,k).le.270.) cliw(i,k) = max(0.,cliw(i,k) + tem)
+               if(t(i,k).gt.270) clcw(i,k) = max(0.,clcw(i,k) + tem)
 
              enddo
 
@@ -841,13 +850,25 @@ contains
             enddo
             do i=its,itf
               if(pret(i).gt.0.)then
-                 cactiv(i)=1
+                 cactiv(i)=0
+                 !cactiv(i)=1
                  raincv(i)=.001*(cutenm(i)*pretm(i)+cutens(i)*prets(i)+cuten(i)*pret(i))*dt
               else
                  cactiv(i)=0
                  if(pretm(i).gt.0)raincv(i)=.001*cutenm(i)*pretm(i)*dt
               endif   ! pret > 0
             enddo
+
+            !! Unify ccn
+            !do i=its,itf
+            !  !if(ccn(i).lt.ccn_m(i))then
+            !  !  ccn_m(i)=ccn(i)
+            !  if(ccn_m(i).lt.ccn(i))then
+            !    ccn(i)=ccn_m(i)
+            !  endif
+            !  write(11,*)'ccn: ',ccn(i)
+            !  write(11,*)' '
+            !enddo
  100    continue
 !
 ! Scale dry mixing ratios for water wapor and cloud water to specific humidy / moist mixing ratios
