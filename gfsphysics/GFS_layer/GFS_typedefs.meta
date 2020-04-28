@@ -1269,27 +1269,6 @@
   dimensions = (horizontal_dimension)
   type = real
   kind = kind_phys
-[evap]
-  standard_name = kinematic_surface_upward_latent_heat_flux
-  long_name = kinematic surface upward latent heat flux
-  units = kg kg-1 m s-1
-  dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
-[hflx]
-  standard_name = kinematic_surface_upward_sensible_heat_flux
-  long_name = kinematic surface upward sensible heat flux
-  units = K m s-1
-  dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
-[qss]
-  standard_name = surface_specific_humidity
-  long_name = surface air saturation specific humidity
-  units = kg kg-1
-  dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
 [raincprv]
   standard_name = lwe_thickness_of_convective_precipitation_amount_from_previous_timestep
   long_name = convective_precipitation_amount from previous timestep
@@ -1959,36 +1938,6 @@
 [ldiag3d]
   standard_name = flag_diagnostics_3D
   long_name = flag for 3d diagnostic fields
-  units = flag
-  dimensions = ()
-  type = logical
-[qdiag3d]
-  standard_name = flag_tracer_diagnostics_3D
-  long_name = flag for 3d tracer diagnostic fields
-  units = flag
-  dimensions = ()
-  type = logical
-[flag_for_gwd_generic_tend]
-  standard_name = flag_for_generic_gravity_wave_drag_tendency
-  long_name = true if GFS_GWD_generic should calculate tendencies
-  units = flag
-  dimensions = ()
-  type = logical
-[flag_for_pbl_generic_tend]
-  standard_name = flag_for_generic_planetary_boundary_layer_tendency
-  long_name = true if GFS_PBL_generic should calculate tendencies
-  units = flag
-  dimensions = ()
-  type = logical
-[flag_for_dcnv_generic_tend]
-  standard_name = flag_for_generic_deep_convection_tendency
-  long_name = true if GFS_DCNV_generic should calculate tendencies
-  units = flag
-  dimensions = ()
-  type = logical
-[flag_for_scnv_generic_tend]
-  standard_name = flag_for_generic_shallow_convection_tendency
-  long_name = true if GFS_SCNV_generic should calculate tendencies
   units = flag
   dimensions = ()
   type = logical
@@ -4148,13 +4097,6 @@
   dimensions = (horizontal_dimension,vertical_dimension_of_h2o_forcing_data,number_of_coefficients_in_h2o_forcing_data)
   type = real
   kind = kind_phys
-[hpbl]
-  standard_name = atmosphere_boundary_layer_thickness
-  long_name = pbl height
-  units = m
-  dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
 [in_nm]
   standard_name = in_number_concentration
   long_name = IN number concentration
@@ -4165,15 +4107,22 @@
 [ccn_nm]
   standard_name = ccn_number_concentration
   long_name = CCN number concentration
-  units = kg-1?
+  units = kg-1
   dimensions = (horizontal_dimension,vertical_dimension)
   type = real
   kind = kind_phys
 [aer_nm]
   standard_name = aerosol_number_concentration_from_gocart_aerosol_climatology
   long_name = GOCART aerosol climatology number concentration
-  units = kg-1?
+  units = kg-1
   dimensions = (horizontal_dimension,vertical_dimension,number_of_aerosol_tracers_MG)
+  type = real
+  kind = kind_phys
+[ccn_gf]
+  standard_name = ccn_in_gf_deep
+  long_name = cloud-condensation nuclei used in Grell-Freitas Convective Parameterizatio
+  units = kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
   type = real
   kind = kind_phys
 [imap]
@@ -5185,6 +5134,13 @@
   dimensions = (horizontal_dimension)
   type = real
   kind = kind_phys
+[hpbl]
+  standard_name = atmosphere_boundary_layer_thickness
+  long_name = pbl height
+  units = m
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
 [pwat]
   standard_name = column_precipitable_water
   long_name = precipitable water
@@ -5430,34 +5386,6 @@
   dimensions = (horizontal_dimension,vertical_dimension)
   type = real
   kind = kind_phys
-[du3dt(:,:,5)]
-  standard_name = cumulative_change_in_x_wind_due_to_rayleigh_damping
-  long_name = cumulative change in x wind due to Rayleigh damping
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[du3dt(:,:,6)]
-  standard_name = cumulative_change_in_x_wind_due_to_shallow_convection
-  long_name = cumulative change in x wind due to shallow convection
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[du3dt(:,:,7)]
-  standard_name = cumulative_change_in_x_wind_due_to_physics
-  long_name = cumulative change in x wind due to physics
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[du3dt(:,:,8)]
-  standard_name = cumulative_change_in_x_wind_due_to_non_physics_processes
-  long_name = cumulative change in x wind due to non-physics processes
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
 [dv3dt(:,:,1)]
   standard_name = cumulative_change_in_y_wind_due_to_PBL
   long_name = cumulative change in y wind due to PBL
@@ -5482,34 +5410,6 @@
 [dv3dt(:,:,4)]
   standard_name = cumulative_change_in_y_wind_due_to_convective_gravity_wave_drag
   long_name = cumulative change in y wind due to convective gravity wave drag
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dv3dt(:,:,5)]
-  standard_name = cumulative_change_in_y_wind_due_to_rayleigh_damping
-  long_name = cumulative change in y wind due to Rayleigh damping
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dv3dt(:,:,6)]
-  standard_name = cumulative_change_in_y_wind_due_to_shallow_convection
-  long_name = cumulative change in y wind due to shallow convection
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dv3dt(:,:,7)]
-  standard_name = cumulative_change_in_y_wind_due_to_physics
-  long_name = cumulative change in y wind due to physics
-  units = m s-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dv3dt(:,:,8)]
-  standard_name = cumulative_change_in_y_wind_due_to_non_physics_processes
-  long_name = cumulative change in y wind due to non-physics processes
   units = m s-1
   dimensions = (horizontal_dimension,vertical_dimension)
   type = real
@@ -5543,7 +5443,7 @@
   type = real
   kind = kind_phys
 [dt3dt(:,:,5)]
-  standard_name = cumulative_change_in_temperature_due_to_shallow_convection
+  standard_name = cumulative_change_in_temperature_due_to_shal_convection
   long_name = cumulative change in temperature due to shallow convection
   units = K
   dimensions = (horizontal_dimension,vertical_dimension)
@@ -5563,34 +5463,6 @@
   dimensions = (horizontal_dimension,vertical_dimension)
   type = real
   kind = kind_phys
-[dt3dt(:,:,8)]
-  standard_name = cumulative_change_in_temperature_due_to_rayleigh_damping
-  long_name = cumulative change in temperature due to Rayleigh damping
-  units = K
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dt3dt(:,:,9)]
-  standard_name = cumulative_change_in_temperature_due_to_convective_gravity_wave_drag
-  long_name = cumulative change in temperature due to convective gravity wave drag
-  units = K
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dt3dt(:,:,10)]
-  standard_name = cumulative_change_in_temperature_due_to_physics
-  long_name = cumulative change in temperature due to physics
-  units = K
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dt3dt(:,:,11)]
-  standard_name = cumulative_change_in_temperature_due_to_non_physics_processes
-  long_name = cumulative change in temperature due to non-physics processed
-  units = K
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
 [dq3dt(:,:,1)]
   standard_name = cumulative_change_in_water_vapor_specific_humidity_due_to_PBL
   long_name = cumulative change in water vapor specific humidity due to PBL
@@ -5606,7 +5478,7 @@
   type = real
   kind = kind_phys
 [dq3dt(:,:,3)]
-  standard_name = cumulative_change_in_water_vapor_specific_humidity_due_to_shallow_convection
+  standard_name = cumulative_change_in_water_vapor_specific_humidity_due_to_shal_convection
   long_name = cumulative change in water vapor specific humidity due to shallow convection
   units = kg kg-1
   dimensions = (horizontal_dimension,vertical_dimension)
@@ -5650,34 +5522,6 @@
 [dq3dt(:,:,9)]
   standard_name = cumulative_change_in_ozone_concentration_due_to_overhead_ozone_column
   long_name = cumulative change in ozone concentration due to overhead ozone column
-  units = kg kg-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dq3dt(:,:,10)]
-  standard_name = cumulative_change_in_water_vapor_specific_humidity_due_to_physics
-  long_name = cumulative change in water vapor specific humidity due to physics
-  units = kg kg-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dq3dt(:,:,11)]
-  standard_name = cumulative_change_in_ozone_concentration_due_to_physics
-  long_name = cumulative change in ozone concentration due to physics
-  units = kg kg-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dq3dt(:,:,12)]
-  standard_name = cumulative_change_in_water_vapor_specific_humidity_due_to_non_physics_processes
-  long_name = cumulative change in water vapor specific humidity due to non-physics processes
-  units = kg kg-1
-  dimensions = (horizontal_dimension,vertical_dimension)
-  type = real
-  kind = kind_phys
-[dq3dt(:,:,13)]
-  standard_name = cumulative_change_in_ozone_concentration_due_to_non_physics_processes
-  long_name = cumulative change in ozone_concentration due to non-physics processes
   units = kg kg-1
   dimensions = (horizontal_dimension,vertical_dimension)
   type = real
@@ -6803,6 +6647,13 @@
   dimensions = (horizontal_dimension)
   type = real
   kind = kind_phys
+[evap]
+  standard_name = kinematic_surface_upward_latent_heat_flux
+  long_name = kinematic surface upward latent heat flux
+  units = kg kg-1 m s-1
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
 [evap_ocean]
   standard_name = kinematic_surface_upward_latent_heat_flux_over_ocean
   long_name = kinematic surface upward latent heat flux over ocean
@@ -7217,6 +7068,13 @@
   long_name = natural log of h2o forcing data pressure levels
   units = log(Pa)
   dimensions = (vertical_dimension_of_h2o_forcing_data)
+  type = real
+  kind = kind_phys
+[hflx]
+  standard_name = kinematic_surface_upward_sensible_heat_flux
+  long_name = kinematic surface upward sensible heat flux
+  units = K m s-1
+  dimensions = (horizontal_dimension)
   type = real
   kind = kind_phys
 [hflx_ocean]
@@ -7663,6 +7521,13 @@
   dimensions = (horizontal_dimension)
   type = real
   kind = kind_phys
+[qss]
+  standard_name = surface_specific_humidity
+  long_name = surface air saturation specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
 [qss_ocean]
   standard_name = surface_specific_humidity_over_ocean
   long_name = surface air saturation specific humidity over ocean
@@ -7772,13 +7637,6 @@
   long_name = surface runoff flux
   units = kg m-2 s-1
   dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
-[save_q(:,:,index_for_ozone)]
-  standard_name = ozone_mixing_ratio_save
-  long_name = ozone mixing ratio before entering a physics scheme
-  units = kg kg-1
-  dimensions = (horizontal_dimension,vertical_dimension)
   type = real
   kind = kind_phys
 [save_q(:,:,index_for_liquid_cloud_condensate)]
