@@ -830,7 +830,7 @@ contains
                endif
 
              enddo
-            
+
             gdc(i,1,10)=forcing(i,1)
             gdc(i,2,10)=forcing(i,2)
             gdc(i,3,10)=forcing(i,3)
