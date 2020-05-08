@@ -139,11 +139,7 @@ module lsm_ruc
 ! DH* TODO - make order of arguments the same as in the metadata table
       subroutine lsm_ruc_run                                            & ! inputs
      &     ( iter, me, master, kdt, im, nlev, lsoil_ruc, lsoil, zs,     &
-<<<<<<< HEAD
      &       t1, q1, qc, soiltyp, vegtype, sigmaf, laixy,               &
-=======
-     &       u1, v1, t1, q1, qc, soiltyp, vegtype, sigmaf, laixy,       &
->>>>>>> 7f530edd66132aa4d92e042a580c0aebf7e69662
      &       sfcemis, dlwflx, dswsfc, snet, delt, tg3, cm, ch,          &
      &       prsl1, zf, wind, shdmin, shdmax, alvwf, alnwf,             &
      &       snoalb, sfalb, flag_iter, flag_guess, isot, ivegsrc, fice, &
@@ -181,8 +177,6 @@ module lsm_ruc
      &       t1, sigmaf, sfcemis, dlwflx, dswsfc, snet, tg3, cm,        &
      &       ch, prsl1, wind, shdmin, shdmax,                           &
      &       snoalb, alvwf, alnwf, zf, qc, q1
-
-      real (kind=kind_phys), dimension(:), intent(in) :: laixy
 
       real (kind=kind_phys), dimension(:), intent(in) :: laixy
 
@@ -835,7 +829,6 @@ module lsm_ruc
      &          its,ite, jts,jte, kts,kte                                    )
 
         if(debug_print) then
-          !if(me==0 .and. i==ipr) then
           write (0,*)'after sneqv(i,j) =',i,j,sneqv(i,j)
           write (0,*)'after snowh(i,j) =',i,j,snowh(i,j)
           write (0,*)'after sncovr(i,j) =',i,j,sncovr(i,j)
