@@ -629,7 +629,7 @@
 !> \section arg_table_GFS_suite_interstitial_4_run Argument Table
 !! \htmlinclude GFS_suite_interstitial_4_run.html
 !!
-    subroutine GFS_suite_interstitial_4_run (im, levs, ltaerosol, lgocart, cplchm, tracers_total, ntrac, ntcw, ntiw, ntclamt, &
+    subroutine GFS_suite_interstitial_4_run (im, levs, ltaerosol, cplchm, tracers_total, ntrac, ntcw, ntiw, ntclamt, &
       ntrw, ntsw, ntrnc, ntsnc, ntgl, ntgnc, ntlnc, ntinc, nn, imp_physics, imp_physics_gfdl, imp_physics_thompson,           &
       imp_physics_zhao_carr, imp_physics_zhao_carr_pdf, dtf, save_qc, save_qi, con_pi,                                        &
       gq0, clw, dqdti, errmsg, errflg)
