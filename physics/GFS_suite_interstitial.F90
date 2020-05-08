@@ -629,10 +629,17 @@
 !> \section arg_table_GFS_suite_interstitial_4_run Argument Table
 !! \htmlinclude GFS_suite_interstitial_4_run.html
 !!
+<<<<<<< HEAD
     subroutine GFS_suite_interstitial_4_run (im, levs, ltaerosol, cplchm, tracers_total, ntrac, ntcw, ntiw, ntclamt, &
       ntrw, ntsw, ntrnc, ntsnc, ntgl, ntgnc, ntlnc, ntinc, nn, imp_physics, imp_physics_gfdl, imp_physics_thompson,  &
       imp_physics_zhao_carr, imp_physics_zhao_carr_pdf, dtf, save_qc, save_qi, con_pi,                               &
       gq0, clw, prsl, save_tcp, con_rd, nwfa, spechum, dqdti, imfdeepcnv, imfdeepcnv_gf, errmsg, errflg)
+=======
+    subroutine GFS_suite_interstitial_4_run (imfdeepcnv, im, levs, ltaerosol, lgocart, cplchm, tracers_total, ntrac, ntcw, ntiw, ntclamt, &
+      ntrw, ntsw, ntrnc, ntsnc, ntgl, ntgnc, ntlnc, ntinc, nn, imp_physics, imp_physics_gfdl, imp_physics_thompson,           &
+      imp_physics_zhao_carr, imp_physics_zhao_carr_pdf, dtf, save_qc, save_qi, con_pi,                                        &
+      gq0, clw, dqdti, errmsg, errflg)
+>>>>>>> 7f530edd66132aa4d92e042a580c0aebf7e69662
 
       use machine,               only: kind_phys
       use module_mp_thompson_make_number_concentrations, only: make_IceNumber, make_DropletNumber
@@ -641,7 +648,7 @@
 
       ! interface variables
 
-      integer,                                  intent(in) :: im, levs, tracers_total, ntrac, ntcw, ntiw, ntclamt, ntrw,  &
+      integer,                                  intent(in) :: imfdeepcnv, im, levs, tracers_total, ntrac, ntcw, ntiw, ntclamt, ntrw,  &
         ntsw, ntrnc, ntsnc, ntgl, ntgnc, ntlnc, ntinc, nn, imp_physics, imp_physics_gfdl, imp_physics_thompson,           &
         imp_physics_zhao_carr, imp_physics_zhao_carr_pdf, imfdeepcnv, imfdeepcnv_gf
 
@@ -715,6 +722,7 @@
               gq0(i,k,ntcw) = clw(i,k,2)                     ! water
             enddo
           enddo
+<<<<<<< HEAD
 
           if (imp_physics == imp_physics_thompson .and. (ntlnc>0 .or. ntinc>0)) then
              do k=1,levs
@@ -743,6 +751,27 @@
                  endif
                enddo
              enddo
+=======
+!         if (imp_physics == imp_physics_thompson) then
+          if (imp_physics == imp_physics_thompson .and. imfdeepcnv /= 3) then
+            if (ltaerosol) then
+              do k=1,levs
+                do i=1,im
+                  gq0(i,k,ntlnc) = gq0(i,k,ntlnc)  &
+                           +  max(0.0, (clw(i,k,2)-save_qc(i,k))) / liqm
+                  gq0(i,k,ntinc) = gq0(i,k,ntinc)  &
+                           +  max(0.0, (clw(i,k,1)-save_qi(i,k))) / icem
+                enddo
+              enddo
+            else
+              do k=1,levs
+                do i=1,im
+                  gq0(i,k,ntinc) = gq0(i,k,ntinc)  &
+                           +  max(0.0, (clw(i,k,1)-save_qi(i,k))) / icem
+                enddo
+              enddo
+            endif
+>>>>>>> 7f530edd66132aa4d92e042a580c0aebf7e69662
           endif
 
         else
