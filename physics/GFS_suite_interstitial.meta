@@ -1,775 +1,1799 @@
-!> \file GFS_suite_interstitial.f90
-!!  Contains code related to more than one scheme in the GFS physics suite.
-
-    module GFS_suite_interstitial_rad_reset
-
-    contains
-
-    subroutine GFS_suite_interstitial_rad_reset_init ()
-    end subroutine GFS_suite_interstitial_rad_reset_init
-
-    subroutine GFS_suite_interstitial_rad_reset_finalize()
-    end subroutine GFS_suite_interstitial_rad_reset_finalize
-
-!> \section arg_table_GFS_suite_interstitial_rad_reset_run Argument Table
-!! \htmlinclude GFS_suite_interstitial_rad_reset_run.html
-!!
-    subroutine GFS_suite_interstitial_rad_reset_run (Interstitial, Model, errmsg, errflg)
-
-      use GFS_typedefs, only: GFS_control_type,GFS_interstitial_type
-
-      implicit none
-
-      ! interface variables
-      type(GFS_interstitial_type), intent(inout) :: Interstitial
-      type(GFS_control_type),      intent(in)    :: Model
-      character(len=*), intent(out) :: errmsg
-      integer, intent(out) :: errflg
-
-      errmsg = ''
-      errflg = 0
-
-      call Interstitial%rad_reset(Model)
-
-    end subroutine GFS_suite_interstitial_rad_reset_run
-
-    end module GFS_suite_interstitial_rad_reset
-
-
-    module GFS_suite_interstitial_phys_reset
-
-    contains
-
-    subroutine GFS_suite_interstitial_phys_reset_init ()
-    end subroutine GFS_suite_interstitial_phys_reset_init
-
-    subroutine GFS_suite_interstitial_phys_reset_finalize()
-    end subroutine GFS_suite_interstitial_phys_reset_finalize
-
-!> \section arg_table_GFS_suite_interstitial_phys_reset_run Argument Table
-!! \htmlinclude GFS_suite_interstitial_phys_reset_run.html
-!!
-    subroutine GFS_suite_interstitial_phys_reset_run (Interstitial, Model, errmsg, errflg)
-
-      use GFS_typedefs, only: GFS_control_type, GFS_interstitial_type
-
-      implicit none
-
-      ! interface variables
-      type(GFS_interstitial_type), intent(inout) :: Interstitial
-      type(GFS_control_type),      intent(in)    :: Model
-      character(len=*), intent(out) :: errmsg
-      integer, intent(out) :: errflg
-
-      errmsg = ''
-      errflg = 0
-
-      call Interstitial%phys_reset(Model)
-
-    end subroutine GFS_suite_interstitial_phys_reset_run
-
-    end module GFS_suite_interstitial_phys_reset
-
-
-    module GFS_suite_interstitial_1
-
-    contains
-
-    subroutine GFS_suite_interstitial_1_init ()
-    end subroutine GFS_suite_interstitial_1_init
-
-    subroutine GFS_suite_interstitial_1_finalize()
-    end subroutine GFS_suite_interstitial_1_finalize
-
-!> \section arg_table_GFS_suite_interstitial_1_run Argument Table
-!! \htmlinclude GFS_suite_interstitial_1_run.html
-!!
-    subroutine GFS_suite_interstitial_1_run (im, levs, ntrac, dtf, dtp, slmsk, area, dxmin, dxinv, pgr, &
-      islmsk, work1, work2, psurf, dudt, dvdt, dtdt, dtdtc, dqdt, errmsg, errflg)
-
-      use machine,               only: kind_phys
-
-      implicit none
-
-      ! interface variables
-      integer,              intent(in) :: im, levs, ntrac
-      real(kind=kind_phys), intent(in) :: dtf, dtp, dxmin, dxinv
-      real(kind=kind_phys), intent(in), dimension(im) :: slmsk, area, pgr
-
-      integer,              intent(out), dimension(im) :: islmsk
-      real(kind=kind_phys), intent(out), dimension(im) :: work1, work2, psurf
-      real(kind=kind_phys), intent(out), dimension(im,levs) :: dudt, dvdt, dtdt, dtdtc
-      real(kind=kind_phys), intent(out), dimension(im,levs,ntrac) ::  dqdt
-      character(len=*),     intent(out) :: errmsg
-      integer,              intent(out) :: errflg
-
-      ! local variables
-      integer :: i, k, n
-
-      ! Initialize CCPP error handling variables
-      errmsg = ''
-      errflg = 0
-
-      do i = 1, im
-        islmsk(i)   = nint(slmsk(i))
-
-        work1(i) = (log(area(i)) - dxmin) * dxinv
-        work1(i) = max(0.0, min(1.0,work1(i)))
-        work2(i) = 1.0 - work1(i)
-        psurf(i) = pgr(i)
-      end do
-
-      do k=1,levs
-        do i=1,im
-          dudt(i,k)  = 0.
-          dvdt(i,k)  = 0.
-          dtdt(i,k)  = 0.
-          dtdtc(i,k) = 0.
-        enddo
-      enddo
-      do n=1,ntrac
-        do k=1,levs
-          do i=1,im
-            dqdt(i,k,n) = 0.
-          enddo
-        enddo
-      enddo
-
-    end subroutine GFS_suite_interstitial_1_run
-
-  end module GFS_suite_interstitial_1
-
-
-  module GFS_suite_interstitial_2
-
-  use machine, only: kind_phys
-  real(kind=kind_phys), parameter :: one = 1.0d0
-
-  contains
-
-    subroutine GFS_suite_interstitial_2_init ()
-    end subroutine GFS_suite_interstitial_2_init
-
-    subroutine GFS_suite_interstitial_2_finalize()
-    end subroutine GFS_suite_interstitial_2_finalize
-#if 0
-!> \section arg_table_GFS_suite_interstitial_2_run Argument Table
-!! \htmlinclude GFS_suite_interstitial_2_run.html
-!!
-#endif
-    subroutine GFS_suite_interstitial_2_run (im, levs, lssav, ldiag3d, lsidea, cplflx, flag_cice, shal_cnv, old_monin, mstrat,       &
-      do_shoc, frac_grid, imfshalcnv, dtf, xcosz, adjsfcdsw, adjsfcdlw, cice, pgr, ulwsfc_cice, lwhd, htrsw, htrlw, xmu, ctei_rm,    &
-      work1, work2, prsi, tgrs, prsl, qgrs_water_vapor, qgrs_cloud_water, cp, hvap, prslk, suntim, adjsfculw, adjsfculw_lnd,         &
-      adjsfculw_ice, adjsfculw_ocn, dlwsfc, ulwsfc, psmean, dt3dt_lw, dt3dt_sw, dt3dt_pbl, dt3dt_dcnv, dt3dt_scnv, dt3dt_mp,         &
-      ctei_rml, ctei_r, kinver, dry, icy, wet, frland, huge, errmsg, errflg)
-
-      implicit none
-
-      ! interface variables
-      integer,              intent(in   ) :: im, levs, imfshalcnv
-      logical,              intent(in   ) :: lssav, ldiag3d, lsidea, cplflx, shal_cnv
-      logical,              intent(in   ) :: old_monin, mstrat, do_shoc, frac_grid
-      real(kind=kind_phys), intent(in   ) :: dtf, cp, hvap
-
-      logical,              intent(in   ), dimension(im) :: flag_cice
-      real(kind=kind_phys), intent(in   ), dimension(2) :: ctei_rm
-      real(kind=kind_phys), intent(in   ), dimension(im) :: xcosz, adjsfcdsw, adjsfcdlw, pgr, xmu, ulwsfc_cice, work1, work2
-      real(kind=kind_phys), intent(in   ), dimension(im) :: cice
-      real(kind=kind_phys), intent(in   ), dimension(im, levs) :: htrsw, htrlw, tgrs, prsl, qgrs_water_vapor, qgrs_cloud_water, prslk
-      real(kind=kind_phys), intent(in   ), dimension(im, levs+1) :: prsi
-      real(kind=kind_phys), intent(in   ), dimension(im, levs, 6) :: lwhd
-
-      integer,              intent(inout), dimension(im) :: kinver
-      real(kind=kind_phys), intent(inout), dimension(im) :: suntim, dlwsfc, ulwsfc, psmean, ctei_rml, ctei_r
-      real(kind=kind_phys), intent(in   ), dimension(im) :: adjsfculw_lnd, adjsfculw_ice, adjsfculw_ocn
-      real(kind=kind_phys), intent(  out), dimension(im) :: adjsfculw
-
-      ! These arrays are only allocated if ldiag3d is .true.
-      real(kind=kind_phys), intent(inout), dimension(:,:) :: dt3dt_lw, dt3dt_sw, dt3dt_pbl, dt3dt_dcnv, dt3dt_scnv, dt3dt_mp
-
-      logical,              intent(in   ), dimension(im) :: dry, icy, wet
-      real(kind=kind_phys), intent(in   ), dimension(im) :: frland
-      real(kind=kind_phys), intent(in   ) :: huge
-
-      character(len=*),     intent(out) :: errmsg
-      integer,              intent(out) :: errflg
-
-      ! local variables
-      real(kind=kind_phys), parameter :: czmin   = 0.0001      ! cos(89.994)
-      integer :: i, k
-      real(kind=kind_phys) :: tem1, tem2, tem, hocp
-      logical, dimension(im) :: invrsn
-      real(kind=kind_phys), dimension(im) :: tx1, tx2
-
-      real(kind=kind_phys), parameter :: qmin = 1.0d-10
-
-      ! Initialize CCPP error handling variables
-      errmsg = ''
-      errflg = 0
-
-      hocp = hvap/cp
-
-      if (lssav) then      !  --- ...  accumulate/save output variables
-
-!  --- ...  sunshine duration time is defined as the length of time (in mdl output
-!           interval) that solar radiation falling on a plane perpendicular to the
-!           direction of the sun >= 120 w/m2
-
-        do i = 1, im
-          if ( xcosz(i) >= czmin ) then   ! zenth angle > 89.994 deg
-            tem1 = adjsfcdsw(i) / xcosz(i)
-            if ( tem1 >= 120.0 ) then
-              suntim(i) = suntim(i) + dtf
-            endif
-          endif
-        enddo
-
-!  --- ...  sfc lw fluxes used by atmospheric model are saved for output
-
-        if (frac_grid) then
-          do i=1,im
-            tem = one - cice(i) - frland(i)
-            if (flag_cice(i)) then
-              adjsfculw(i) = adjsfculw_lnd(i) * frland(i) &
-                           + ulwsfc_cice(i)   * cice(i)   &
-                           + adjsfculw_ocn(i) * tem
-            else
-              adjsfculw(i) = adjsfculw_lnd(i) * frland(i) &
-                           + adjsfculw_ice(i) * cice(i)   &
-                           + adjsfculw_ocn(i) * tem
-            endif
-          enddo
-        else
-          do i=1,im
-            if (dry(i)) then                     ! all land
-              adjsfculw(i) = adjsfculw_lnd(i)
-            elseif (icy(i)) then                 ! ice (and water)
-              tem = one - cice(i)
-              if (flag_cice(i)) then
-                if (wet(i) .and. adjsfculw_ocn(i) /= huge) then
-                  adjsfculw(i) = ulwsfc_cice(i)*cice(i) + adjsfculw_ocn(i)*tem
-                else
-                  adjsfculw(i) = ulwsfc_cice(i)
-                endif
-              else
-                if (wet(i) .and. adjsfculw_ocn(i) /= huge) then
-                  adjsfculw(i) = adjsfculw_ice(i)*cice(i) + adjsfculw_ocn(i)*tem
-                else
-                  adjsfculw(i) = adjsfculw_ice(i)
-                endif
-              endif
-            else                                 ! all water
-              adjsfculw(i) = adjsfculw_ocn(i)
-            endif
-          enddo
-        endif
-
-        do i=1,im
-          dlwsfc(i) = dlwsfc(i) +   adjsfcdlw(i)*dtf
-          ulwsfc(i) = ulwsfc(i) +   adjsfculw(i)*dtf
-          psmean(i) = psmean(i) +   pgr(i)*dtf        ! mean surface pressure
-        end do
-
-        if (ldiag3d) then
-          if (lsidea) then
-            do k=1,levs
-              do i=1,im
-                dt3dt_lw(i,k) = dt3dt_lw(i,k) + lwhd(i,k,1)*dtf
-                dt3dt_sw(i,k) = dt3dt_sw(i,k) + lwhd(i,k,2)*dtf
-                dt3dt_pbl(i,k) = dt3dt_pbl(i,k) + lwhd(i,k,3)*dtf
-                dt3dt_dcnv(i,k) = dt3dt_dcnv(i,k) + lwhd(i,k,4)*dtf
-                dt3dt_scnv(i,k) = dt3dt_scnv(i,k) + lwhd(i,k,5)*dtf
-                dt3dt_mp(i,k) = dt3dt_mp(i,k) + lwhd(i,k,6)*dtf
-              end do
-            end do
-          else
-            do k=1,levs
-              do i=1,im
-                dt3dt_lw(i,k) = dt3dt_lw(i,k) + htrlw(i,k)*dtf
-                dt3dt_sw(i,k) = dt3dt_sw(i,k) + htrsw(i,k)*dtf*xmu(i)
-              enddo
-            enddo
-          endif
-        endif
-      endif    ! end if_lssav_block
-
-      do i=1, im
-        invrsn(i) = .false.
-        tx1(i)    = 0.0
-        tx2(i)    = 10.0
-        ctei_r(i) = 10.0
-      end do
-
-      if ((((imfshalcnv == 0 .and. shal_cnv) .or. old_monin) .and. mstrat) &
-         .or. do_shoc) then
-        ctei_rml(:) = ctei_rm(1)*work1(:) + ctei_rm(2)*work2(:)
-        do k=1,levs/2
-          do i=1,im
-            if (prsi(i,1)-prsi(i,k+1) < 0.35*prsi(i,1)       &
-                .and. (.not. invrsn(i))) then
-              tem = (tgrs(i,k+1) - tgrs(i,k))  &
-                  / (prsl(i,k)   - prsl(i,k+1))
-
-              if (((tem > 0.00010) .and. (tx1(i) < 0.0)) .or.  &
-                  ((tem-abs(tx1(i)) > 0.0) .and. (tx2(i) < 0.0))) then
-                invrsn(i) = .true.
-
-                if (qgrs_water_vapor(i,k) > qgrs_water_vapor(i,k+1)) then
-                  tem1 = tgrs(i,k+1) + hocp*max(qgrs_water_vapor(i,k+1),qmin)
-                  tem2 = tgrs(i,k)   + hocp*max(qgrs_water_vapor(i,k),qmin)
-
-                  tem1 = tem1 / prslk(i,k+1) - tem2 / prslk(i,k)
-
-!  --- ...  (cp/l)(deltathetae)/(deltatwater) > ctei_rm -> conditon for CTEI
-                  ctei_r(i) = (1.0/hocp)*tem1/(qgrs_water_vapor(i,k+1)-qgrs_water_vapor(i,k)  &
-                            + qgrs_cloud_water(i,k+1)-qgrs_cloud_water(i,k))
-                else
-                  ctei_r(i) = 10
-                endif
-
-                if ( ctei_rml(i) > ctei_r(i) ) then
-                  kinver(i) = k
-                else
-                  kinver(i) = levs
-                endif
-              endif
-
-              tx2(i) = tx1(i)
-              tx1(i) = tem
-            endif
-          enddo
-        enddo
-      endif
-
-    end subroutine GFS_suite_interstitial_2_run
-
-  end module GFS_suite_interstitial_2
-
-
-  module GFS_suite_stateout_reset
-
-  contains
-
-    subroutine GFS_suite_stateout_reset_init ()
-    end subroutine GFS_suite_stateout_reset_init
-
-    subroutine GFS_suite_stateout_reset_finalize()
-    end subroutine GFS_suite_stateout_reset_finalize
-
-!> \section arg_table_GFS_suite_stateout_reset_run Argument Table
-!! \htmlinclude GFS_suite_stateout_reset_run.html
-!!
-    subroutine GFS_suite_stateout_reset_run (im, levs, ntrac,        &
-                                             tgrs, ugrs, vgrs, qgrs, &
-                                             gt0 , gu0 , gv0 , gq0 , &
-                                             errmsg, errflg)
-
-      use machine,               only: kind_phys
-
-      implicit none
-
-      ! interface variables
-      integer, intent(in) :: im
-      integer, intent(in) :: levs
-      integer, intent(in) :: ntrac
-      real(kind=kind_phys), dimension(im,levs),       intent(in)  :: tgrs, ugrs, vgrs
-      real(kind=kind_phys), dimension(im,levs,ntrac), intent(in)  :: qgrs
-      real(kind=kind_phys), dimension(im,levs),       intent(out) :: gt0, gu0, gv0
-      real(kind=kind_phys), dimension(im,levs,ntrac), intent(out) :: gq0
-
-      character(len=*), intent(out) :: errmsg
-      integer,          intent(out) :: errflg
-
-      ! Initialize CCPP error handling variables
-      errmsg = ''
-      errflg = 0
-
-      gt0(:,:)   = tgrs(:,:)
-      gu0(:,:)   = ugrs(:,:)
-      gv0(:,:)   = vgrs(:,:)
-      gq0(:,:,:) = qgrs(:,:,:)
-
-    end subroutine GFS_suite_stateout_reset_run
-
-  end module GFS_suite_stateout_reset
-
-
-  module GFS_suite_stateout_update
-
-  contains
-
-    subroutine GFS_suite_stateout_update_init ()
-    end subroutine GFS_suite_stateout_update_init
-
-    subroutine GFS_suite_stateout_update_finalize()
-    end subroutine GFS_suite_stateout_update_finalize
-
-!> \section arg_table_GFS_suite_stateout_update_run Argument Table
-!! \htmlinclude GFS_suite_stateout_update_run.html
-!!
-    subroutine GFS_suite_stateout_update_run (im, levs, ntrac, dtp,  &
-                     tgrs, ugrs, vgrs, qgrs, dudt, dvdt, dtdt, dqdt, &
-                     gt0, gu0, gv0, gq0, errmsg, errflg)
-
-      use machine,               only: kind_phys
-
-      implicit none
-
-      ! Interface variables
-      integer,              intent(in) :: im
-      integer,              intent(in) :: levs
-      integer,              intent(in) :: ntrac
-      real(kind=kind_phys), intent(in) :: dtp
-
-      real(kind=kind_phys), dimension(im,levs),       intent(in)  :: tgrs, ugrs, vgrs
-      real(kind=kind_phys), dimension(im,levs,ntrac), intent(in)  :: qgrs
-      real(kind=kind_phys), dimension(im,levs),       intent(in)  :: dudt, dvdt, dtdt
-      real(kind=kind_phys), dimension(im,levs,ntrac), intent(in)  :: dqdt
-      real(kind=kind_phys), dimension(im,levs),       intent(out) :: gt0, gu0, gv0
-      real(kind=kind_phys), dimension(im,levs,ntrac), intent(out) :: gq0
-
-      character(len=*), intent(out) :: errmsg
-      integer,          intent(out) :: errflg
-
-      ! Initialize CCPP error handling variables
-      errmsg = ''
-      errflg = 0
-
-      gt0(:,:)   = tgrs(:,:)   + dtdt(:,:)   * dtp
-      gu0(:,:)   = ugrs(:,:)   + dudt(:,:)   * dtp
-      gv0(:,:)   = vgrs(:,:)   + dvdt(:,:)   * dtp
-      gq0(:,:,:) = qgrs(:,:,:) + dqdt(:,:,:) * dtp
-
-    end subroutine GFS_suite_stateout_update_run
-
-  end module GFS_suite_stateout_update
-
-
-  module GFS_suite_interstitial_3
-
-  contains
-
-    subroutine GFS_suite_interstitial_3_init ()
-    end subroutine GFS_suite_interstitial_3_init
-
-    subroutine GFS_suite_interstitial_3_finalize()
-    end subroutine GFS_suite_interstitial_3_finalize
-
-#if 0
-!> \section arg_table_GFS_suite_interstitial_3_run Argument Table
-!! \htmlinclude GFS_suite_interstitial_3_run.html
-!!
-#endif
-    subroutine GFS_suite_interstitial_3_run (im, levs, nn, cscnv,       &
-               satmedmf, trans_trac, do_shoc, ltaerosol, ntrac, ntcw,   &
-               ntiw, ntclamt, ntrw, ntsw, ntrnc, ntsnc, ntgl, ntgnc,    &
-               xlat, gt0, gq0, imp_physics, imp_physics_mg,             &
-               imp_physics_zhao_carr, imp_physics_zhao_carr_pdf,        &
-               imp_physics_gfdl, imp_physics_thompson,                  &
-               imp_physics_wsm6, imp_physics_fer_hires, prsi,           &
-               prsl, prslk, rhcbot,rhcpbl, rhctop, rhcmax, islmsk,      &
-               work1, work2, kpbl, kinver,clw, rhc, save_qc, save_qi,   &
-               save_tcp, errmsg, errflg)
-
-      use machine, only: kind_phys
-
-      implicit none
-
-      ! interface variables
-      integer,                                          intent(in) :: im, levs, nn, ntrac, ntcw, ntiw, ntclamt, ntrw,     &
-        ntsw, ntrnc, ntsnc, ntgl, ntgnc, imp_physics, imp_physics_mg, imp_physics_zhao_carr, imp_physics_zhao_carr_pdf,   &
-        imp_physics_gfdl, imp_physics_thompson, imp_physics_wsm6,imp_physics_fer_hires
-      integer, dimension(im),                           intent(in) :: islmsk, kpbl, kinver
-      logical,                                          intent(in) :: cscnv, satmedmf, trans_trac, do_shoc, ltaerosol
-
-      real(kind=kind_phys),                             intent(in) :: rhcbot, rhcmax, rhcpbl, rhctop
-      real(kind=kind_phys), dimension(im),              intent(in) :: work1, work2
-      real(kind=kind_phys), dimension(im, levs),        intent(in) :: prsl, prslk
-      real(kind=kind_phys), dimension(im, levs+1),      intent(in) :: prsi
-      real(kind=kind_phys), dimension(im),              intent(in) :: xlat
-      real(kind=kind_phys), dimension(im, levs),        intent(in) :: gt0
-      real(kind=kind_phys), dimension(im, levs, ntrac), intent(in) :: gq0
-
-      real(kind=kind_phys), dimension(im, levs),      intent(inout) :: rhc, save_qc
-      ! save_qi is not allocated for Zhao-Carr MP
-      real(kind=kind_phys), dimension(:, :),          intent(inout) :: save_qi
-      real(kind=kind_phys), dimension(:, :),          intent(inout) :: save_tcp ! ONLY ALLOCATE FOR THOMPSON! TODO
-      real(kind=kind_phys), dimension(im, levs, nn),  intent(inout) :: clw
-
-      character(len=*), intent(out) :: errmsg
-      integer, intent(out) :: errflg
-
-      ! local variables
-      integer :: i,k,n,tracers,kk
-      real(kind=kind_phys) :: tem, tem1, tem2
-      real(kind=kind_phys), dimension(im) :: tx1, tx2, tx3, tx4
-
-      !real(kind=kind_phys),parameter :: slope_mg = 0.02, slope_upmg = 0.04,  &
-      !                   turnrhcrit = 0.900, turnrhcrit_upper = 0.150
-      ! in the following inverse of slope_mg and slope_upmg are specified
-      real(kind=kind_phys),parameter :: slope_mg   = 50.0_kind_phys,   &
-                                        slope_upmg = 25.0_kind_phys
-
-      ! Initialize CCPP error handling variables
-      errmsg = ''
-      errflg = 0
-
-      if (cscnv .or. satmedmf .or. trans_trac ) then
-        tracers = 2
-        do n=2,ntrac
-          if ( n /= ntcw  .and. n /= ntiw  .and. n /= ntclamt .and. &
-               n /= ntrw  .and. n /= ntsw  .and. n /= ntrnc   .and. &
-               n /= ntsnc .and. n /= ntgl  .and. n /= ntgnc) then
-            tracers = tracers + 1
-            do k=1,levs
-              do i=1,im
-                clw(i,k,tracers) = gq0(i,k,n)
-              enddo
-            enddo
-          endif
-        enddo
-      endif ! end if_ras or cfscnv or samf
-
-      if (ntcw > 0) then
-        if (imp_physics == imp_physics_mg .and. rhcpbl < 0.5) then ! compute rhc for GMAO macro physics cloud pdf
-          do i=1,im
-            tx1(i) = 1.0 / prsi(i,1)
-            tx2(i) = 1.0 - rhcmax*work1(i)-rhcbot*work2(i)
-
-            kk     = min(kinver(i), max(2,kpbl(i)))
-            tx3(i) = prsi(i,kk)*tx1(i)
-            tx4(i) = rhcpbl - rhctop*abs(cos(xlat(i)))
-          enddo
-          do k = 1, levs
-            do i = 1, im
-              tem  = prsl(i,k) * tx1(i)
-              tem1 = min(max((tem-tx3(i))*slope_mg, -20.0), 20.0)
-              ! Using rhcpbl and rhctop from the namelist instead of 0.3 and 0.2
-              ! and rhcbot represents pbl top critical relative humidity
-              tem2 = min(max((tx4(i)-tem)*slope_upmg, -20.0), 20.0) ! Anning
-              if (islmsk(i) > 0) then
-                tem1 = 1.0 / (1.0+exp(tem1+tem1))
-              else
-                tem1 = 2.0 / (1.0+exp(tem1+tem1))
-              endif
-              tem2 = 1.0 / (1.0+exp(tem2))
-
-              rhc(i,k) = min(rhcmax, max(0.7, 1.0-tx2(i)*tem1*tem2))
-            enddo
-          enddo
-        else
-          do k=1,levs
-            do i=1,im
-              kk = max(10,kpbl(i))
-              if (k < kk) then
-                tem    = rhcbot - (rhcbot-rhcpbl) * (1.0-prslk(i,k)) / (1.0-prslk(i,kk))
-              else
-                tem    = rhcpbl - (rhcpbl-rhctop) * (prslk(i,kk)-prslk(i,k)) / prslk(i,kk)
-              endif
-              tem      = rhcmax * work1(i) + tem * work2(i)
-              rhc(i,k) = max(0.0, min(1.0,tem))
-            enddo
-          enddo
-        endif
-      else
-        rhc(:,:) = 1.0
-      endif
-
-      if (imp_physics == imp_physics_zhao_carr .or. imp_physics == imp_physics_zhao_carr_pdf) then   ! zhao-carr microphysics
-        !GF* move to GFS_MP_generic_pre (from gscond/precpd)
-        ! do i=1,im
-        !   psautco_l(i) = Model%psautco(1)*work1(i) + Model%psautco(2)*work2(i)
-        !   prautco_l(i) = Model%prautco(1)*work1(i) + Model%prautco(2)*work2(i)
-        ! enddo
-        !*GF
-        do k=1,levs
-          do i=1,im
-            clw(i,k,1) = gq0(i,k,ntcw)
-          enddo
-        enddo
-      elseif (imp_physics == imp_physics_gfdl) then
-        clw(1:im,:,1) = gq0(1:im,:,ntcw)
-      elseif (imp_physics == imp_physics_thompson) then
-        do k=1,levs
-          do i=1,im
-            clw(i,k,1)    = gq0(i,k,ntiw)                    ! ice
-            clw(i,k,2)    = gq0(i,k,ntcw)                    ! water
-            save_tcp(i,k) = gt0(i,k)
-          enddo
-        enddo
-        if(ltaerosol) then
-          save_qi(:,:) = clw(:,:,1)
-          save_qc(:,:)  = clw(:,:,2)
-        else
-          save_qi(:,:) = clw(:,:,1)
-        endif
-      elseif (imp_physics == imp_physics_wsm6 .or. imp_physics == imp_physics_mg .or. imp_physics == imp_physics_fer_hires) then
-        do k=1,levs
-          do i=1,im
-            clw(i,k,1) = gq0(i,k,ntiw)                    ! ice
-            clw(i,k,2) = gq0(i,k,ntcw)                    ! water
-          enddo
-        enddo
-      endif
-
-    end subroutine GFS_suite_interstitial_3_run
-
-  end module GFS_suite_interstitial_3
-
-  module GFS_suite_interstitial_4
-
-  contains
-
-    subroutine GFS_suite_interstitial_4_init ()
-    end subroutine GFS_suite_interstitial_4_init
-
-    subroutine GFS_suite_interstitial_4_finalize()
-    end subroutine GFS_suite_interstitial_4_finalize
-
-!> \section arg_table_GFS_suite_interstitial_4_run Argument Table
-!! \htmlinclude GFS_suite_interstitial_4_run.html
-!!
-    subroutine GFS_suite_interstitial_4_run (im, levs, ltaerosol, cplchm, tracers_total, ntrac, ntcw, ntiw, ntclamt, &
-      ntrw, ntsw, ntrnc, ntsnc, ntgl, ntgnc, ntlnc, ntinc, nn, imp_physics, imp_physics_gfdl, imp_physics_thompson,  &
-      imp_physics_zhao_carr, imp_physics_zhao_carr_pdf, dtf, save_qc, save_qi, con_pi,                               &
-      gq0, clw, prsl, save_tcp, con_rd, nwfa, spechum, dqdti, errmsg, errflg)
-
-      use machine,               only: kind_phys
-      use module_mp_thompson_make_number_concentrations, only: make_IceNumber, make_DropletNumber
-
-      implicit none
-
-      ! interface variables
-
-      integer,                                  intent(in) :: im, levs, tracers_total, ntrac, ntcw, ntiw, ntclamt, ntrw,  &
-        ntsw, ntrnc, ntsnc, ntgl, ntgnc, ntlnc, ntinc, nn, imp_physics, imp_physics_gfdl, imp_physics_thompson,           &
-        imp_physics_zhao_carr, imp_physics_zhao_carr_pdf
-
-      logical,                                  intent(in) :: ltaerosol, cplchm
-
-      real(kind=kind_phys),                     intent(in) :: con_pi, dtf
-      real(kind=kind_phys), dimension(im,levs), intent(in) :: save_qc
-      ! save_qi is not allocated for Zhao-Carr MP
-      real(kind=kind_phys), dimension(:, :),    intent(in) :: save_qi
-
-      real(kind=kind_phys), dimension(im,levs,ntrac), intent(inout) :: gq0
-      real(kind=kind_phys), dimension(im,levs,nn),    intent(inout) :: clw
-      real(kind=kind_phys), dimension(im,levs),       intent(in) :: prsl
-      real(kind=kind_phys),                           intent(in) :: con_rd
-      real(kind=kind_phys), dimension(:,:),           intent(in) :: nwfa, save_tcp
-      real(kind=kind_phys), dimension(im,levs),       intent(in) :: spechum
-
-      ! dqdti may not be allocated
-      real(kind=kind_phys), dimension(:,:),           intent(inout) :: dqdti
-
-
-      character(len=*), intent(out) :: errmsg
-      integer,          intent(out) :: errflg
-
-      ! local variables
-      integer :: i,k,n,tracers
-
-      real(kind=kind_phys), dimension(im,levs) :: rho_dryair
-      real(kind=kind_phys), dimension(im,levs) :: qv_mp !< kg kg-1 (dry mixing ratio)
-      real(kind=kind_phys), dimension(im,levs) :: qc_mp !< kg kg-1 (dry mixing ratio)
-      real(kind=kind_phys), dimension(im,levs) :: qi_mp !< kg kg-1 (dry mixing ratio)
-      real(kind=kind_phys), dimension(im,levs) :: nc_mp !< kg-1 (dry mixing ratio)
-      real(kind=kind_phys), dimension(im,levs) :: ni_mp !< kg-1 (dry mixing ratio)
-
-      ! Initialize CCPP error handling variables
-      errmsg = ''
-      errflg = 0
-
-!  --- update the tracers due to deep & shallow cumulus convective transport
-!           (except for suspended water and ice)
-
-      if (tracers_total > 0) then
-        tracers = 2
-        do n=2,ntrac
-!         if ( n /= ntcw .and. n /= ntiw .and. n /= ntclamt) then
-          if ( n /= ntcw  .and. n /= ntiw  .and. n /= ntclamt .and. &
-               n /= ntrw  .and. n /= ntsw  .and. n /= ntrnc   .and. &
-               n /= ntsnc .and. n /= ntgl  .and. n /= ntgnc ) then
-              tracers = tracers + 1
-            do k=1,levs
-              do i=1,im
-                gq0(i,k,n) = clw(i,k,tracers)
-              enddo
-            enddo
-          endif
-        enddo
-      endif
-
-      if (ntcw > 0) then
-
-!  for microphysics
-        if (imp_physics == imp_physics_zhao_carr     .or. &
-            imp_physics == imp_physics_zhao_carr_pdf .or. &
-            imp_physics == imp_physics_gfdl) then
-           gq0(1:im,:,ntcw) = clw(1:im,:,1) + clw(1:im,:,2)
-
-        elseif (ntiw > 0) then
-          do k=1,levs
-            do i=1,im
-              gq0(i,k,ntiw) = clw(i,k,1)                     ! ice
-              gq0(i,k,ntcw) = clw(i,k,2)                     ! water
-            enddo
-          enddo
-
-          if (imp_physics == imp_physics_thompson .and. (ntlnc>0 .or. ntinc>0)) then
-             do k=1,levs
-               do i=1,im
-                 !> - Density of air in kg m-3
-                 rho_dryair(i,k) = prsl(i,k)/(con_rd*save_tcp(i,k))
-                 !> - Convert specific humidity to dry mixing ratio
-                 qv_mp(i,k) = spechum(i,k)/(1.0_kind_phys-spechum(i,k))
-                 if (ntlnc>0) then
-                   !> - Convert moist mixing ratio to dry mixing ratio
-                   qc_mp(i,k) = (clw(i,k,2)-save_qc(i,k))/(1.0_kind_phys-spechum(i,k))
-                   !> - Convert number concentration from moist to dry
-                   nc_mp(i,k) = gq0(i,k,ntlnc)/(1.0_kind_phys-spechum(i,k))
-                   nc_mp(i,k) = nc_mp(i,k) + max(0.0, make_DropletNumber(qc_mp(i,k) * rho_dryair(i,k), nwfa(i,k)) * (1.0/rho_dryair(i,k)))
-                   !> - Convert number concentrations from dry to moist
-                   gq0(i,k,ntlnc) = nc_mp(i,k)/(1.0_kind_phys+qv_mp(i,k))
-                 endif
-                 if (ntinc>0) then
-                   !> - Convert moist mixing ratio to dry mixing ratio
-                   qi_mp(i,k) = (clw(i,k,1)-save_qi(i,k))/(1.0_kind_phys-spechum(i,k))
-                   !> - Convert number concentration from moist to dry
-                   ni_mp(i,k) = gq0(i,k,ntinc)/(1.0_kind_phys-spechum(i,k)) 
-                   ni_mp(i,k) = ni_mp(i,k) + max(0.0, make_IceNumber(qi_mp(i,k) * rho_dryair(i,k), save_tcp(i,k)) * (1.0/rho_dryair(i,k)))
-                   !> - Convert number concentrations from dry to moist
-                   gq0(i,k,ntinc) = ni_mp(i,k)/(1.0_kind_phys+qv_mp(i,k))
-                 endif
-               enddo
-             enddo
-          endif
-
-        else
-          do k=1,levs
-            do i=1,im
-              gq0(i,k,ntcw) = clw(i,k,1) + clw(i,k,2)
-            enddo
-          enddo
-        endif   ! end if_ntiw
-
-      else
-        do k=1,levs
-          do i=1,im
-            clw(i,k,1) = clw(i,k,1) + clw(i,k,2)
-          enddo
-        enddo
-      endif   ! end if_ntcw
-
-! dqdt_v : instaneous moisture tendency (kg/kg/sec)
-      if (cplchm) then
-        do k=1,levs
-          do i=1,im
-            dqdti(i,k) = dqdti(i,k) * (1.0 / dtf)
-          enddo
-        enddo
-      endif
-
-    end subroutine GFS_suite_interstitial_4_run
-
-  end module GFS_suite_interstitial_4
+[ccpp-arg-table]
+  name = GFS_suite_interstitial_rad_reset_run
+  type = scheme
+[Interstitial]
+  standard_name = GFS_interstitial_type_instance
+  long_name = derived type GFS_interstitial_type in FV3
+  units = DDT
+  dimensions = ()
+  type = GFS_interstitial_type
+  intent = inout
+  optional = F
+[Model]
+  standard_name = GFS_control_type_instance
+  long_name = Fortran DDT containing FV3-GFS model control parameters
+  units = DDT
+  dimensions = ()
+  type = GFS_control_type
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_interstitial_phys_reset_run
+  type = scheme
+[Interstitial]
+  standard_name = GFS_interstitial_type_instance
+  long_name = derived type GFS_interstitial_type in FV3
+  units = DDT
+  dimensions = ()
+  type = GFS_interstitial_type
+  intent = inout
+  optional = F
+[Model]
+  standard_name = GFS_control_type_instance
+  long_name = Fortran DDT containing FV3-GFS model control parameters
+  units = DDT
+  dimensions = ()
+  type = GFS_control_type
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_interstitial_1_run
+  type = scheme
+[im]
+  standard_name = horizontal_loop_extent
+  long_name = horizontal loop extent
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[levs]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrac]
+  standard_name = number_of_tracers
+  long_name = number of tracers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[dtf]
+  standard_name = time_step_for_dynamics
+  long_name = dynamics timestep
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dtp]
+  standard_name = time_step_for_physics
+  long_name = physics timestep
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[slmsk]
+  standard_name = sea_land_ice_mask_real
+  long_name = landmask: sea/land/ice=0/1/2
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[area]
+  standard_name = cell_area
+  long_name = area of the grid cell
+  units = m2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dxmin]
+  standard_name = minimum_scaling_factor_for_critical_relative_humidity
+  long_name = minimum scaling factor for critical relative humidity
+  units = m2 rad-2
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dxinv]
+  standard_name = inverse_scaling_factor_for_critical_relative_humidity
+  long_name = inverse scaling factor for critical relative humidity
+  units = rad2 m-2
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[pgr]
+  standard_name = surface_air_pressure
+  long_name = surface pressure
+  units = Pa
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[islmsk]
+  standard_name = sea_land_ice_mask
+  long_name = landmask: sea/land/ice=0/1/2
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent = out
+  optional = F
+[work1]
+  standard_name = grid_size_related_coefficient_used_in_scale_sensitive_schemes
+  long_name = grid size related coefficient used in scale-sensitive schemes
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[work2]
+  standard_name = grid_size_related_coefficient_used_in_scale_sensitive_schemes_complement
+  long_name = complement to work1
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[psurf]
+  standard_name = surface_air_pressure_diag
+  long_name = surface air pressure diagnostic
+  units = Pa
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[dudt]
+  standard_name = tendency_of_x_wind_due_to_model_physics
+  long_name = updated tendency of the x wind
+  units = m s-2
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[dvdt]
+  standard_name = tendency_of_y_wind_due_to_model_physics
+  long_name = updated tendency of the y wind
+  units = m s-2
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[dtdt]
+  standard_name = tendency_of_air_temperature_due_to_model_physics
+  long_name = updated tendency of the temperature
+  units = K s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[dtdtc]
+  standard_name = tendency_of_air_temperature_due_to_radiative_heating_assuming_clear_sky
+  long_name = clear sky radiative (shortwave + longwave) heating rate at current time
+  units = K s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[dqdt]
+  standard_name = tendency_of_tracers_due_to_model_physics
+  long_name = updated tendency of the tracers
+  units = kg kg-1 s-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_interstitial_2_run
+  type = scheme
+[im]
+  standard_name = horizontal_loop_extent
+  long_name = horizontal loop extent
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[levs]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[lssav]
+  standard_name = flag_diagnostics
+  long_name = logical flag for storing diagnostics
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[ldiag3d]
+  standard_name = flag_diagnostics_3D
+  long_name = flag for 3d diagnostic fields
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[lsidea]
+  standard_name = flag_idealized_physics
+  long_name = flag for idealized physics
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[cplflx]
+  standard_name = flag_for_flux_coupling
+  long_name = flag controlling cplflx collection (default off)
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[flag_cice]
+  standard_name = flag_for_cice
+  long_name = flag for cice
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = logical
+  intent = in
+  optional = F
+[shal_cnv]
+  standard_name = flag_for_shallow_convection
+  long_name = flag for calling shallow convection
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[old_monin]
+  standard_name = flag_for_old_PBL_scheme
+  long_name = flag for using old PBL schemes
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[mstrat]
+  standard_name = flag_for_moorthi_stratus
+  long_name = flag for moorthi approach for stratus
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[do_shoc]
+  standard_name = flag_for_shoc
+  long_name = flag for SHOC
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[frac_grid]
+  standard_name = flag_for_fractional_grid
+  long_name = flag for fractional grid
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[imfshalcnv]
+  standard_name = flag_for_mass_flux_shallow_convection_scheme
+  long_name = flag for mass-flux shallow convection scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[dtf]
+  standard_name = time_step_for_dynamics
+  long_name = dynamics timestep
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[xcosz]
+  standard_name = instantaneous_cosine_of_zenith_angle
+  long_name = cosine of zenith angle at current time
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[adjsfcdsw]
+  standard_name = surface_downwelling_shortwave_flux
+  long_name = surface downwelling shortwave flux at current time
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[adjsfcdlw]
+  standard_name = surface_downwelling_longwave_flux
+  long_name = surface downwelling longwave flux at current time
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[cice]
+  standard_name = sea_ice_concentration
+  long_name = ice fraction over open water
+  units = frac
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[pgr]
+  standard_name = surface_air_pressure
+  long_name = surface pressure
+  units = Pa
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[ulwsfc_cice]
+  standard_name = surface_upwelling_longwave_flux_for_coupling
+  long_name = surface upwelling longwave flux for coupling
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[lwhd]
+  standard_name = tendency_of_air_temperature_due_to_longwave_heating_for_idea
+  long_name = idea sky lw heating rates
+  units = K s-1
+  dimensions = (horizontal_dimension,vertical_dimension,6)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[htrsw]
+  standard_name = tendency_of_air_temperature_due_to_shortwave_heating_on_radiation_timestep
+  long_name = total sky sw heating rate
+  units = K s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[htrlw]
+  standard_name = tendency_of_air_temperature_due_to_longwave_heating_on_radiation_timestep
+  long_name = total sky lw heating rate
+  units = K s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[xmu]
+  standard_name = zenith_angle_temporal_adjustment_factor_for_shortwave_fluxes
+  long_name = zenith angle temporal adjustment factor for shortwave fluxes
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[ctei_rm]
+  standard_name = critical_cloud_top_entrainment_instability_criteria
+  long_name = critical cloud top entrainment instability criteria
+  units = none
+  dimensions = (2)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[work1]
+  standard_name = grid_size_related_coefficient_used_in_scale_sensitive_schemes
+  long_name = grid size related coefficient used in scale-sensitive schemes
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[work2]
+  standard_name = grid_size_related_coefficient_used_in_scale_sensitive_schemes_complement
+  long_name = complement to work1
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[prsi]
+  standard_name = air_pressure_at_interface
+  long_name = air pressure at model layer interfaces
+  units = Pa
+  dimensions = (horizontal_dimension,vertical_dimension_plus_one)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[tgrs]
+  standard_name = air_temperature
+  long_name = model layer mean temperature
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[prsl]
+  standard_name = air_pressure
+  long_name = mean layer pressure
+  units = Pa
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[qgrs_water_vapor]
+  standard_name = water_vapor_specific_humidity
+  long_name = water vapor specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[qgrs_cloud_water]
+  standard_name = cloud_condensed_water_mixing_ratio
+  long_name = moist (dry+vapor, no condensates) mixing ratio of cloud water (condensate)
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[cp]
+  standard_name = specific_heat_of_dry_air_at_constant_pressure
+  long_name = specific heat of dry air at constant pressure
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[hvap]
+  standard_name = latent_heat_of_vaporization_of_water_at_0C
+  long_name = latent heat of evaporation/sublimation
+  units = J kg-1
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[prslk]
+  standard_name = dimensionless_exner_function_at_model_layers
+  long_name = dimensionless Exner function at model layer centers
+  units = none
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[suntim]
+  standard_name = duration_of_sunshine
+  long_name = sunshine duration time
+  units = s
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[adjsfculw]
+  standard_name = surface_upwelling_longwave_flux
+  long_name = surface upwelling longwave flux at current time
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[adjsfculw_lnd]
+  standard_name = surface_upwelling_longwave_flux_over_land_interstitial
+  long_name = surface upwelling longwave flux at current time over land (temporary use as interstitial)
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[adjsfculw_ice]
+  standard_name = surface_upwelling_longwave_flux_over_ice_interstitial
+  long_name = surface upwelling longwave flux at current time over ice (temporary use as interstitial)
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[adjsfculw_ocn]
+  standard_name = surface_upwelling_longwave_flux_over_ocean_interstitial
+  long_name = surface upwelling longwave flux at current time over ocean (temporary use as interstitial)
+  units = W m-2
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dlwsfc]
+  standard_name = cumulative_surface_downwelling_longwave_flux_multiplied_by_timestep
+  long_name = cumulative surface downwelling LW flux multiplied by timestep
+  units = W m-2 s
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[ulwsfc]
+  standard_name = cumulative_surface_upwelling_longwave_flux_multiplied_by_timestep
+  long_name = cumulative surface upwelling LW flux multiplied by timestep
+  units = W m-2 s
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[psmean]
+  standard_name = cumulative_surface_pressure_multiplied_by_timestep
+  long_name = cumulative surface pressure multiplied by timestep
+  units = Pa s
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dt3dt_lw]
+  standard_name = cumulative_change_in_temperature_due_to_longwave_radiation
+  long_name = cumulative change in temperature due to longwave radiation
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dt3dt_sw]
+  standard_name = cumulative_change_in_temperature_due_to_shortwave_radiation
+  long_name = cumulative change in temperature due to shortwave radiation
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dt3dt_pbl]
+  standard_name = cumulative_change_in_temperature_due_to_PBL
+  long_name = cumulative change in temperature due to PBL
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dt3dt_dcnv]
+  standard_name = cumulative_change_in_temperature_due_to_deep_convection
+  long_name = cumulative change in temperature due to deep conv.
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dt3dt_scnv]
+  standard_name = cumulative_change_in_temperature_due_to_shallow_convection
+  long_name = cumulative change in temperature due to shal conv.
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dt3dt_mp]
+  standard_name = cumulative_change_in_temperature_due_to_microphysics
+  long_name = cumulative change in temperature due to microphysics
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[ctei_rml]
+  standard_name = grid_sensitive_critical_cloud_top_entrainment_instability_criteria
+  long_name = grid sensitive critical cloud top entrainment instability criteria
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[ctei_r]
+  standard_name = cloud_top_entrainment_instability_value
+  long_name = cloud top entrainment instability value
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[kinver]
+  standard_name = index_of_highest_temperature_inversion
+  long_name = index of highest temperature inversion
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent = inout
+  optional = F
+[dry]
+  standard_name = flag_nonzero_land_surface_fraction
+  long_name = flag indicating presence of some land surface area fraction
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = logical
+  intent = in
+  optional = F
+[icy]
+  standard_name = flag_nonzero_sea_ice_surface_fraction
+  long_name = flag indicating presence of some sea ice surface area fraction
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = logical
+  intent = in
+  optional = F
+[wet]
+  standard_name = flag_nonzero_wet_surface_fraction
+  long_name = flag indicating presence of some ocean or lake surface area fraction
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = logical
+  intent = in
+  optional = F
+[frland]
+  standard_name = land_area_fraction_for_microphysics
+  long_name = land area fraction used in microphysics schemes
+  units = frac
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[huge]
+  standard_name = netcdf_float_fillvalue
+  long_name = definition of NetCDF float FillValue
+  units = none
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_stateout_reset_run
+  type = scheme
+[im]
+  standard_name = horizontal_loop_extent
+  long_name = horizontal loop extent
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[levs]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrac]
+  standard_name = number_of_tracers
+  long_name = number of tracers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[tgrs]
+  standard_name = air_temperature
+  long_name = model layer mean temperature
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[ugrs]
+  standard_name = x_wind
+  long_name = zonal wind
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[vgrs]
+  standard_name = y_wind
+  long_name = meridional wind
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[qgrs]
+  standard_name = tracer_concentration
+  long_name = model layer mean tracer concentration
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[gt0]
+  standard_name = air_temperature_updated_by_physics
+  long_name = temperature updated by physics
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[gu0]
+  standard_name = x_wind_updated_by_physics
+  long_name = zonal wind updated by physics
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[gv0]
+  standard_name = y_wind_updated_by_physics
+  long_name = meridional wind updated by physics
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[gq0]
+  standard_name = tracer_concentration_updated_by_physics
+  long_name = tracer concentration updated by physics
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_stateout_update_run
+  type = scheme
+[im]
+  standard_name = horizontal_loop_extent
+  long_name = horizontal loop extent
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[levs]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrac]
+  standard_name = number_of_tracers
+  long_name = number of tracers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[dtp]
+  standard_name = time_step_for_physics
+  long_name = physics timestep
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[tgrs]
+  standard_name = air_temperature
+  long_name = model layer mean temperature
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[ugrs]
+  standard_name = x_wind
+  long_name = zonal wind
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[vgrs]
+  standard_name = y_wind
+  long_name = meridional wind
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[qgrs]
+  standard_name = tracer_concentration
+  long_name = model layer mean tracer concentration
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dudt]
+  standard_name = tendency_of_x_wind_due_to_model_physics
+  long_name = updated tendency of the x wind
+  units = m s-2
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dvdt]
+  standard_name = tendency_of_y_wind_due_to_model_physics
+  long_name = updated tendency of the y wind
+  units = m s-2
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dtdt]
+  standard_name = tendency_of_air_temperature_due_to_model_physics
+  long_name = updated tendency of the temperature
+  units = K s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dqdt]
+  standard_name = tendency_of_tracers_due_to_model_physics
+  long_name = updated tendency of the tracers
+  units = kg kg-1 s-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[gt0]
+  standard_name = air_temperature_updated_by_physics
+  long_name = temperature updated by physics
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[gu0]
+  standard_name = x_wind_updated_by_physics
+  long_name = zonal wind updated by physics
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[gv0]
+  standard_name = y_wind_updated_by_physics
+  long_name = meridional wind updated by physics
+  units = m s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[gq0]
+  standard_name = tracer_concentration_updated_by_physics
+  long_name = tracer concentration updated by physics
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_interstitial_3_run
+  type = scheme
+[im]
+  standard_name = horizontal_loop_extent
+  long_name = horizontal loop extent
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[levs]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[nn]
+  standard_name = number_of_tracers_for_convective_transport
+  long_name = number of tracers for convective transport
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[cscnv]
+  standard_name = flag_for_Chikira_Sugiyama_deep_convection
+  long_name = flag for Chikira-Sugiyama convection
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[satmedmf]
+  standard_name = flag_for_scale_aware_TKE_moist_EDMF_PBL
+  long_name = flag for scale-aware TKE moist EDMF PBL scheme
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[trans_trac]
+  standard_name = flag_for_convective_transport_of_tracers
+  long_name = flag for convective transport of tracers
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[do_shoc]
+  standard_name = flag_for_shoc
+  long_name = flag for SHOC
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[ltaerosol]
+  standard_name = flag_for_aerosol_physics
+  long_name = flag for aerosol physics
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[ntrac]
+  standard_name = number_of_tracers
+  long_name = number of tracers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntcw]
+  standard_name = index_for_liquid_cloud_condensate
+  long_name = tracer index for cloud condensate (or liquid water)
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntiw]
+  standard_name = index_for_ice_cloud_condensate
+  long_name = tracer index for  ice water
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntclamt]
+  standard_name = index_for_cloud_amount
+  long_name = tracer index for cloud amount integer
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrw]
+  standard_name = index_for_rain_water
+  long_name = tracer index for rain water
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntsw]
+  standard_name = index_for_snow_water
+  long_name = tracer index for snow water
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrnc]
+  standard_name = index_for_rain_number_concentration
+  long_name = tracer index for rain   number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntsnc]
+  standard_name = index_for_snow_number_concentration
+  long_name = tracer index for snow   number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntgl]
+  standard_name = index_for_graupel
+  long_name = tracer index for graupel
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntgnc]
+  standard_name = index_for_graupel_number_concentration
+  long_name = tracer index for graupel number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[xlat]
+  standard_name = latitude
+  long_name = latitude
+  units = radians
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[gt0]
+  standard_name = air_temperature_updated_by_physics
+  long_name = temperature updated by physics
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[gq0]
+  standard_name = tracer_concentration_updated_by_physics
+  long_name = tracer concentration updated by physics
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[imp_physics]
+  standard_name = flag_for_microphysics_scheme
+  long_name = choice of microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_mg]
+  standard_name = flag_for_morrison_gettelman_microphysics_scheme
+  long_name = choice of Morrison-Gettelman microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_zhao_carr]
+  standard_name = flag_for_zhao_carr_microphysics_scheme
+  long_name = choice of Zhao-Carr microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_zhao_carr_pdf]
+  standard_name = flag_for_zhao_carr_pdf_microphysics_scheme
+  long_name = choice of Zhao-Carr microphysics scheme with PDF clouds
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_gfdl]
+  standard_name = flag_for_gfdl_microphysics_scheme
+  long_name = choice of GFDL microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_thompson]
+  standard_name = flag_for_thompson_microphysics_scheme
+  long_name = choice of Thompson microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_wsm6]
+  standard_name = flag_for_wsm6_microphysics_scheme
+  long_name = choice of WSM6 microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_fer_hires]
+  standard_name = flag_for_fer_hires_microphysics_scheme
+  long_name = choice of Ferrier-Aligo microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[prsi]
+  standard_name = air_pressure_at_interface
+  long_name = air pressure at model layer interfaces
+  units = Pa
+  dimensions = (horizontal_dimension,vertical_dimension_plus_one)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[prsl]
+  standard_name = air_pressure
+  long_name = mean layer pressure
+  units = Pa
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[prslk]
+  standard_name = dimensionless_exner_function_at_model_layers
+  long_name = dimensionless Exner function at model layer centers
+  units = none
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[rhcbot]
+  standard_name = critical_relative_humidity_at_surface
+  long_name = critical relative humidity at the surface
+  units = frac
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[rhcpbl]
+  standard_name = critical_relative_humidity_at_PBL_top
+  long_name = critical relative humidity at the PBL top
+  units = frac
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[rhctop]
+  standard_name = critical_relative_humidity_at_top_of_atmosphere
+  long_name = critical relative humidity at the top of atmosphere
+  units = frac
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[rhcmax]
+  standard_name = maximum_critical_relative_humidity
+  long_name = maximum critical relative humidity
+  units = frac
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[islmsk]
+  standard_name = sea_land_ice_mask
+  long_name = sea/land/ice mask (=0/1/2)
+  units = flag
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent = in
+  optional = F
+[work1]
+  standard_name = grid_size_related_coefficient_used_in_scale_sensitive_schemes
+  long_name = grid size related coefficient used in scale-sensitive schemes
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[work2]
+  standard_name = grid_size_related_coefficient_used_in_scale_sensitive_schemes_complement
+  long_name = complement to work1
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[kpbl]
+  standard_name = vertical_index_at_top_of_atmosphere_boundary_layer
+  long_name = vertical index at top atmospheric boundary layer
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent = in
+  optional = F
+[kinver]
+  standard_name = index_of_highest_temperature_inversion
+  long_name = index of highest temperature inversion
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent = in
+  optional = F
+[clw]
+  standard_name = convective_transportable_tracers
+  long_name = array to contain cloud water and other convective trans. tracers
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers_for_convective_transport)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[rhc]
+  standard_name = critical_relative_humidity
+  long_name = critical relative humidity
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[save_qc]
+  standard_name = cloud_condensed_water_mixing_ratio_save
+  long_name = moist (dry+vapor, no condensates) mixing ratio of cloud water (condensate) before entering a physics scheme
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[save_qi]
+  standard_name = ice_water_mixing_ratio_save
+  long_name = cloud ice water mixing ratio before entering a physics scheme
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[save_tcp]
+  standard_name = air_temperature_save_from_cumulus_paramterization
+  long_name = air temperature after cumulus parameterization
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = GFS_suite_interstitial_4_run
+  type = scheme
+[im]
+  standard_name = horizontal_loop_extent
+  long_name = horizontal loop extent
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[levs]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ltaerosol]
+  standard_name = flag_for_aerosol_physics
+  long_name = flag for aerosol physics
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[cplchm]
+  standard_name = flag_for_chemistry_coupling
+  long_name = flag controlling cplchm collection (default off)
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[tracers_total]
+  standard_name = number_of_total_tracers
+  long_name = total number of tracers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrac]
+  standard_name = number_of_tracers
+  long_name = number of tracers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntcw]
+  standard_name = index_for_liquid_cloud_condensate
+  long_name = tracer index for cloud condensate (or liquid water)
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntiw]
+  standard_name = index_for_ice_cloud_condensate
+  long_name = tracer index for  ice water
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntclamt]
+  standard_name = index_for_cloud_amount
+  long_name = tracer index for cloud amount integer
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrw]
+  standard_name = index_for_rain_water
+  long_name = tracer index for rain water
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntsw]
+  standard_name = index_for_snow_water
+  long_name = tracer index for snow water
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntrnc]
+  standard_name = index_for_rain_number_concentration
+  long_name = tracer index for rain   number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntsnc]
+  standard_name = index_for_snow_number_concentration
+  long_name = tracer index for snow   number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntgl]
+  standard_name = index_for_graupel
+  long_name = tracer index for graupel
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntgnc]
+  standard_name = index_for_graupel_number_concentration
+  long_name = tracer index for graupel number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntlnc]
+  standard_name = index_for_liquid_cloud_number_concentration
+  long_name = tracer index for liquid number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ntinc]
+  standard_name = index_for_ice_cloud_number_concentration
+  long_name = tracer index for ice    number concentration
+  units = index
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[nn]
+  standard_name = number_of_tracers_for_convective_transport
+  long_name = number of tracers for convective transport
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics]
+  standard_name = flag_for_microphysics_scheme
+  long_name = choice of microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_gfdl]
+  standard_name = flag_for_gfdl_microphysics_scheme
+  long_name = choice of GFDL microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_thompson]
+  standard_name = flag_for_thompson_microphysics_scheme
+  long_name = choice of Thompson microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_zhao_carr]
+  standard_name = flag_for_zhao_carr_microphysics_scheme
+  long_name = choice of Zhao-Carr microphysics scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imp_physics_zhao_carr_pdf]
+  standard_name = flag_for_zhao_carr_pdf_microphysics_scheme
+  long_name = choice of Zhao-Carr microphysics scheme with PDF clouds
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[dtf]
+  standard_name = time_step_for_dynamics
+  long_name = dynamics timestep
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[save_qc]
+  standard_name = cloud_condensed_water_mixing_ratio_save
+  long_name = moist (dry+vapor, no condensates) mixing ratio of cloud water (condensate) before entering a physics scheme
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[save_qi]
+  standard_name = ice_water_mixing_ratio_save
+  long_name = cloud ice water mixing ratio before entering a physics scheme
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[con_pi]
+  standard_name = pi
+  long_name = ratio of a circle's circumference to its diameter
+  units = radians
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[gq0]
+  standard_name = tracer_concentration_updated_by_physics
+  long_name = tracer concentration updated by physics
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[clw]
+  standard_name = convective_transportable_tracers
+  long_name = array to contain cloud water and other convective trans. tracers
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension,number_of_tracers_for_convective_transport)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[prsl]
+  standard_name = air_pressure
+  long_name = mean layer pressure
+  units = Pa
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[save_tcp]
+  standard_name = air_temperature_save_from_cumulus_paramterization
+  long_name = air temperature after cumulus parameterization
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[con_rd]
+  standard_name = gas_constant_dry_air
+  long_name = ideal gas constant for dry air
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[nwfa]
+  standard_name = water_friendly_aerosol_number_concentration
+  long_name = number concentration of water-friendly aerosols
+  units = kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[spechum]
+  standard_name = water_vapor_specific_humidity
+  long_name = water vapor specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[dqdti]
+  standard_name = instantaneous_water_vapor_specific_humidity_tendency_due_to_convection
+  long_name = instantaneous moisture tendency due to convection
+  units = kg kg-1 s-1
+  dimensions = (horizontal_dimension,vertical_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[imfdeepcnv]
+  standard_name = flag_for_mass_flux_deep_convection_scheme
+  long_name = flag for mass-flux deep convection scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[imfdeepcnv_gf]
+  standard_name = flag_for_gf_deep_convection_scheme
+  long_name = flag for Grell-Freitas deep convection scheme
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
